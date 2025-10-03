@@ -17,13 +17,7 @@ def run_hw2(*args):
     """
     run_hw2 is the "main" interface that lets you execute all the walkthroughs
     and challenges in homework 2.
-
-    Usage:
-        run_hw2()                  -> list all registered functions
-        run_hw2('function_name')   -> execute a specific test
-        run_hw2('all')             -> execute all registered functions
     """
-
     fun_handles = {
         "honesty": honesty,
         "walkthrough1": walkthrough1,
@@ -63,7 +57,6 @@ def honesty():
 # Walkthrough 1
 # -----------------------------------------------------------------------------
 
-
 def walkthrough1():
     hw2_walkthrough1()
 
@@ -71,69 +64,64 @@ def walkthrough1():
 # Challenge 1a: Edge detection
 # -----------------------------------------------------------------------------
 
-
 def challenge1a():
     img_list = ["hough_1", "hough_2", "hough_3"]
-    print('Todo: challenge1a')
+    print('Challenge 1a: edge detection -> edge_*.png')
     for img_name in img_list:
         img = io.imread(f"{img_name}.png", as_gray=True)
-    
-        # edge_img = ?? # TODO
-
-        # io.imsave(f"edge_{img_name}.png", img_as_ubyte(edge_img))
+        edge_img = feature.canny(img, sigma=2.0)
+        io.imsave(f"edge_{img_name}.png", img_as_ubyte(edge_img))
 
 # -----------------------------------------------------------------------------
 # Challenge 1b: Hough accumulator
 # -----------------------------------------------------------------------------
 
-
 def challenge1b():
     img_list = ["hough_1", "hough_2", "hough_3"]
-    print('Todo: challenge1b')
-    # rho_num_bins = ??  # TODO
-    # theta_num_bins = ??  # TODO
+    print('Challenge 1b: accumulator -> accumulator_*.png')
 
-    # for img_name in img_list:
-    #     img = io.imread(f"edge_{img_name}.png", as_gray=True)
-    #     hough_accumulator = generate_hough_accumulator(img,
-    #                                                  theta_num_bins,
-    #                                                  rho_num_bins)
-    #     io.imsave(f"accumulator_{img_name}.png",
-    #               img_as_ubyte(hough_accumulator / np.max(hough_accumulator)))
+    theta_num_bins = 180
+    for img_name in img_list:
+        edge = io.imread(f"edge_{img_name}.png", as_gray=True)
+        H, W = edge.shape
+        rho_num_bins = int(2 * np.ceil(np.hypot(H, W)) + 1)
+
+        Hacc = generate_hough_accumulator(edge, theta_num_bins, rho_num_bins)
+        io.imsave(f"accumulator_{img_name}.png",
+                  img_as_ubyte(Hacc / (Hacc.max() if Hacc.max() > 0 else 1.0)))
 
 # -----------------------------------------------------------------------------
 # Challenge 1c: Line finding
 # -----------------------------------------------------------------------------
 
-
 def challenge1c():
     img_list = ["hough_1", "hough_2", "hough_3"]
-    print('Todo: challenge1c')
-    # hough_threshold = [??, ??, ??]  # TODO
+    print('Challenge 1c: lines -> line_*.png')
 
-    # for i, img_name in enumerate(img_list):
-    #     orig_img = io.imread(f"{img_name}.png")
-    #     hough_img = io.imread(f"accumulator_{img_name}.png", as_gray=True)
-    #     line_img = line_finder(orig_img, hough_img, hough_threshold[i])
-    #     line_img = np.flip(line_img, axis=0)
-    #     io.imsave(f"line_{img_name}.png", img_as_ubyte(line_img))
+    # same threshold for all three works well; tweak if needed (fraction of max)
+    hough_threshold = [0.55, 0.55, 0.55]
+
+    for i, img_name in enumerate(img_list):
+        orig_img  = io.imread(f"{img_name}.png")
+        hough_img = io.imread(f"accumulator_{img_name}.png", as_gray=True)
+        line_img  = line_finder(orig_img, hough_img, hough_threshold[i])
+        io.imsave(f"line_{img_name}.png", img_as_ubyte(line_img))
 
 # -----------------------------------------------------------------------------
 # Challenge 1d: Line segment finding
 # -----------------------------------------------------------------------------
 
-
 def challenge1d():
     img_list = ["hough_1", "hough_2", "hough_3"]
-    print('Todo: challenge1d')
-    # hough_threshold = [??, ??, ??]  # TODO
+    print('Challenge 1d: segments -> linedetected_*.png')
 
-    # for i, img_name in enumerate(img_list):
-    #     orig_img = io.imread(f"{img_name}.png")
-    #     hough_img = io.imread(f"accumulator_{img_name}.png", as_gray=True)
-    #     line_img = line_segment_finder(orig_img, hough_img, hough_threshold[i])
-    #     line_img = np.flip(line_img, axis=0)
-    #     io.imsave(f"linedetected_{img_name}.png", img_as_ubyte(line_img))
+    hough_threshold = [0.55, 0.55, 0.55]  # same idea; adjust per image if needed
+
+    for i, img_name in enumerate(img_list):
+        orig_img  = io.imread(f"{img_name}.png")
+        hough_img = io.imread(f"accumulator_{img_name}.png", as_gray=True)
+        seg_img   = line_segment_finder(orig_img, hough_img, hough_threshold[i])
+        io.imsave(f"linedetected_{img_name}.png", img_as_ubyte(seg_img))
 
 # -----------------------------------------------------------------------------
 # Entry point
