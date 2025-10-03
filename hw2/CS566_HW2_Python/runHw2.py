@@ -71,7 +71,7 @@ def challenge1a():
         img = io.imread(f"{img_name}.png", as_gray=True)
         edge_img = feature.canny(img, sigma=2.0)
         io.imsave(f"edge_{img_name}.png", img_as_ubyte(edge_img))
-        
+
 
 # -----------------------------------------------------------------------------
 # Challenge 1b: Hough accumulator
@@ -79,17 +79,21 @@ def challenge1a():
 
 def challenge1b():
     img_list = ["hough_1", "hough_2", "hough_3"]
-    print('Challenge 1b: accumulator -> accumulator_*.png')
+    print('Challenge 1b: Hough accumulator -> accumulator_*.png')
 
-    theta_num_bins = 180
+    theta_num_bins = 180  # 1-degree resolution
+
     for img_name in img_list:
-        edge = io.imread(f"edge_{img_name}.png", as_gray=True)
-        H, W = edge.shape
-        rho_num_bins = int(2 * np.ceil(np.hypot(H, W)) + 1)
+        # Read the edges you saved in 1a and binarize
+        edge = io.imread(f"edge_{img_name}.png", as_gray=True) > 0
 
-        Hacc = generate_hough_accumulator(edge, theta_num_bins, rho_num_bins)
-        io.imsave(f"accumulator_{img_name}.png",
-                  img_as_ubyte(Hacc / (Hacc.max() if Hacc.max() > 0 else 1.0)))
+        H, W = edge.shape
+        rho_num_bins = int(2 * np.ceil(np.hypot(H, W))) + 1
+
+        A = generate_hough_accumulator(edge, theta_num_bins, rho_num_bins)
+
+        A_img = A / A.max() if A.max() > 0 else A
+        io.imsave(f"accumulator_{img_name}.png", img_as_ubyte(A_img))
 
 # -----------------------------------------------------------------------------
 # Challenge 1c: Line finding
