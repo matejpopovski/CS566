@@ -1,14 +1,13 @@
 import sys
 import numpy as np
-from skimage import io, feature, img_as_ubyte
 from pathlib import Path
 from hw2_walkthrough1 import hw2_walkthrough1
 from generateHoughAccumulator import generate_hough_accumulator
 from lineFinder import line_finder
 from lineSegmentFinder import line_segment_finder
 from signAcademicPolicy import sign_academic_honesty_policy
-
-
+from skimage import io, feature, img_as_ubyte, exposure
+from skimage.morphology import binary_closing, disk, remove_small_objects
 # -----------------------------------------------------------------------------
 # Main entry point
 # -----------------------------------------------------------------------------
@@ -67,10 +66,32 @@ def walkthrough1():
 def challenge1a():
     img_list = ["hough_1", "hough_2", "hough_3"]
     print('Challenge 1a: edge detection -> edge_*.png')
-    for img_name in img_list:
-        img = io.imread(f"{img_name}.png", as_gray=True)
-        edge_img = feature.canny(img, sigma=2.0)
-        io.imsave(f"edge_{img_name}.png", img_as_ubyte(edge_img))
+
+    params = {
+        "hough_1": dict(sigma=1.2, low=0.05, high=0.14, clip=0.008),
+        "hough_2": dict(sigma=1.2, low=0.04, high=0.12, clip=0.008),
+        "hough_3": dict(sigma=1.2, low=0.05, high=0.14, clip=0.008),
+    }
+
+    for name in img_list:
+        g = io.imread(f"{name}.png", as_gray=True)
+
+        # Local contrast boost
+        g_eq = exposure.equalize_adapthist(g, clip_limit=params[name]["clip"])
+
+        # Canny (gentler)
+        edges = feature.canny(
+            g_eq,
+            sigma=params[name]["sigma"],
+            low_threshold=params[name]["low"],
+            high_threshold=params[name]["high"],
+        )
+
+        # Connect tiny gaps, then drop speckle
+        edges = binary_closing(edges, footprint=disk(1))
+        edges = remove_small_objects(edges, min_size=40)
+
+        io.imsave(f"edge_{name}.png", img_as_ubyte(edges))
 
 # -----------------------------------------------------------------------------
 # Challenge 1b: Hough accumulator
