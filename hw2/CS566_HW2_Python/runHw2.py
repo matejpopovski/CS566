@@ -8,6 +8,7 @@ from lineSegmentFinder import line_segment_finder
 from signAcademicPolicy import sign_academic_honesty_policy
 from skimage import io, feature, img_as_ubyte, exposure
 from skimage.morphology import binary_closing, disk
+
 # -----------------------------------------------------------------------------
 # Main entry point
 # -----------------------------------------------------------------------------
