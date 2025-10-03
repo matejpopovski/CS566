@@ -166,3 +166,4 @@ Please edit with your **name** and **student ID** in `runHw2.py` before submissi
 - **Segments:** Robust pruning using **perpendicular inlier test** (`ε = 0.006·D`), **gradient–normal alignment** (±30°), **gap-based splitting** along tangent (`gap = 0.012·D`), and **minimum span** (`0.030·D`) plus a **minimum inlier count** (`0.015·D`). These stabilize results and remove short curved fragments (e.g., rims).
 - **Scale-adaptive constants:** Use `D = max(H, W)` so thresholds scale across resolutions without re-tuning.
 - **I/O robustness:** When reloading edge images, **binarize** (`>0`) before Hough to avoid grayscale artifacts from PNG I/O.
+
