@@ -67,36 +67,12 @@ def walkthrough1():
 def challenge1a():
     img_list = ["hough_1", "hough_2", "hough_3"]
     print('Challenge 1a: edge detection -> edge_*.png')
+    for img_name in img_list:
+        img = io.imread(f"{img_name}.png", as_gray=True)
+        edge_img = feature.canny(img, sigma=2.0)
+        io.imsave(f"edge_{img_name}.png", img_as_ubyte(edge_img))
+        
 
-    # Gentle, per-image params. hough_2 is the tricky one (was missing a square).
-    params = {
-        # a little stricter (cleaner)
-        "hough_1": dict(sigma=1.2, low=0.05, high=0.14, clip=0.010),
-        # a little softer + more local contrast to recover weak border
-        "hough_2": dict(sigma=1.0, low=0.030, high=0.100, clip=0.012),
-        # similar to 1
-        "hough_3": dict(sigma=1.2, low=0.05, high=0.14, clip=0.010),
-    }
-
-    for name in img_list:
-        g = io.imread(f"{name}.png", as_gray=True)
-
-        # 1) Local contrast boost (CLAHE)
-        p = params[name]
-        g_eq = exposure.equalize_adapthist(g, clip_limit=p["clip"])
-
-        # 2) Canny (no object removal; we want to keep weak but real borders)
-        edges = feature.canny(
-            g_eq,
-            sigma=p["sigma"],
-            low_threshold=p["low"],
-            high_threshold=p["high"],
-        )
-
-        # 3) Close tiny gaps (one-pixel structural element)
-        edges = binary_closing(edges, footprint=disk(1))
-
-        io.imsave(f"edge_{name}.png", img_as_ubyte(edges))
 # -----------------------------------------------------------------------------
 # Challenge 1b: Hough accumulator
 # -----------------------------------------------------------------------------
