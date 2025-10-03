@@ -7,7 +7,7 @@ from lineFinder import line_finder
 from lineSegmentFinder import line_segment_finder
 from signAcademicPolicy import sign_academic_honesty_policy
 from skimage import io, feature, img_as_ubyte, exposure
-from skimage.morphology import binary_closing, disk, remove_small_objects
+from skimage.morphology import binary_closing, disk
 # -----------------------------------------------------------------------------
 # Main entry point
 # -----------------------------------------------------------------------------
@@ -67,32 +67,35 @@ def challenge1a():
     img_list = ["hough_1", "hough_2", "hough_3"]
     print('Challenge 1a: edge detection -> edge_*.png')
 
+    # Gentle, per-image params. hough_2 is the tricky one (was missing a square).
     params = {
-        "hough_1": dict(sigma=1.2, low=0.05, high=0.14, clip=0.008),
-        "hough_2": dict(sigma=1.2, low=0.04, high=0.12, clip=0.008),
-        "hough_3": dict(sigma=1.2, low=0.05, high=0.14, clip=0.008),
+        # a little stricter (cleaner)
+        "hough_1": dict(sigma=1.2, low=0.05, high=0.14, clip=0.010),
+        # a little softer + more local contrast to recover weak border
+        "hough_2": dict(sigma=1.0, low=0.030, high=0.100, clip=0.012),
+        # similar to 1
+        "hough_3": dict(sigma=1.2, low=0.05, high=0.14, clip=0.010),
     }
 
     for name in img_list:
         g = io.imread(f"{name}.png", as_gray=True)
 
-        # Local contrast boost
-        g_eq = exposure.equalize_adapthist(g, clip_limit=params[name]["clip"])
+        # 1) Local contrast boost (CLAHE)
+        p = params[name]
+        g_eq = exposure.equalize_adapthist(g, clip_limit=p["clip"])
 
-        # Canny (gentler)
+        # 2) Canny (no object removal; we want to keep weak but real borders)
         edges = feature.canny(
             g_eq,
-            sigma=params[name]["sigma"],
-            low_threshold=params[name]["low"],
-            high_threshold=params[name]["high"],
+            sigma=p["sigma"],
+            low_threshold=p["low"],
+            high_threshold=p["high"],
         )
 
-        # Connect tiny gaps, then drop speckle
+        # 3) Close tiny gaps (one-pixel structural element)
         edges = binary_closing(edges, footprint=disk(1))
-        edges = remove_small_objects(edges, min_size=40)
 
         io.imsave(f"edge_{name}.png", img_as_ubyte(edges))
-
 # -----------------------------------------------------------------------------
 # Challenge 1b: Hough accumulator
 # -----------------------------------------------------------------------------
