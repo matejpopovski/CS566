@@ -3,7 +3,7 @@ def sign_academic_honesty_policy(name: str, uni: str):
     Prints an academic honesty statement or prints an error if not properly signed.
     """
 
-    if name == "full_name" or uni == "stu_id":
+    if name == "Matej Popovski" or uni == "9083541632":
         statement_str = "ERROR: Academic Honesty Policy agreement was not signed."
     else:
         statement_str = (
