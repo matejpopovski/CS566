@@ -167,3 +167,6 @@ Please edit with your **name** and **student ID** in `runHw2.py` before submissi
 - **Scale-adaptive constants:** Use `D = max(H, W)` so thresholds scale across resolutions without re-tuning.
 - **I/O robustness:** When reloading edge images, **binarize** (`>0`) before Hough to avoid grayscale artifacts from PNG I/O.
 
+
+
+
