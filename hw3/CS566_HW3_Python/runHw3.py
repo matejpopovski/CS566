@@ -250,17 +250,17 @@ def challenge1c():
 
 
 def challenge1d():
-    # Stitch an arbitrary number of images using the "blend" mode
+    import cv2
     imgl = cv2.imread("mountain_left.png")
     imgc = cv2.imread("mountain_center.png")
     imgr = cv2.imread("mountain_right.png")
-
     if imgl is None or imgc is None or imgr is None:
         raise FileNotFoundError("Missing mountain_left/center/right.png")
-
+    
     pano = stitch_img(imgl, imgc, imgr)
     cv2.imwrite("stitched.png", pano)
     print("Saved: stitched.png")
+
 
 
 

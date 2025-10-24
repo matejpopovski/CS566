@@ -74,39 +74,45 @@ def stitch_img(*args):
         # kp_stitched are points in the current canvas; kp_n are points in img_n
         # Run RANSAC to find homography (source: img_n -> dest: stitched_img)
         # kp_stitched are points in the current canvas; kp_n are points in img_n
-        inliers_id, H_src_to_canvas = run_ransac(kp_n, kp_stitched, ransac_n=100, eps=3.0)
+        # Run RANSAC to find homography (source: img_n -> dest: stitched_img)
+        # --- match current image to the REFERENCE image (not the canvas) ---
+        xs, xd = gen_sift_matches(img_n, ref_img)   # xs in img_n, xd in ref_img
 
-        # If RANSAC failed or produced too few inliers, skip this image
-        if (H_src_to_canvas is None) or (inliers_id.size < 4):
+        # RANSAC homography: img_n -> ref_img
+        inliers_id, H_src_to_ref = run_ransac(xs, xd, ransac_n=100, eps=3.0)
+        if (H_src_to_ref is None) or (inliers_id.size < 4):
             continue
 
-        # --- keep homography scale sane to reduce extreme perspective stretch ---
-        if H_src_to_canvas[2, 2] != 0:
-            H_src_to_canvas = H_src_to_canvas / H_src_to_canvas[2, 2]
+        # Normalize homography scale for stability
+        if H_src_to_ref[2, 2] != 0:
+            H_src_to_ref = H_src_to_ref / H_src_to_ref[2, 2]
 
-        # Backward warp needs (canvas -> src) homography
+        # Compose with the translation that placed the reference on the canvas
+        T_ref_to_canvas = np.array([[1.0, 0.0, ref_start_x],
+                                    [0.0, 1.0, ref_start_y],
+                                    [0.0, 0.0, 1.0]], dtype=np.float64)
+        H_src_to_canvas = T_ref_to_canvas @ H_src_to_ref
+
+        # Backward warp needs (canvas -> src)
         H_canvas_to_src = np.linalg.inv(H_src_to_canvas)
 
-        # --- warp current image into the canvas frame ---
-        mask_n, warped_n = backward_warp_img(
-            img_n, H_canvas_to_src, (W_stitched, H_stitched)   # (width, height)
-        )
+        # Warp current image into the canvas frame
+        mask_n, warped_n = backward_warp_img(img_n, H_canvas_to_src,
+                                            (W_stitched, H_stitched))  # (width, height)
         mask_n = mask_n.astype(np.uint8)
 
-        # Ensure dtypes match blend function expectations
+        # Ensure dtypes match for blending
         if warped_n.dtype != stitched_img.dtype:
             warped_n = warped_n.astype(stitched_img.dtype)
 
-        # --- blend onto the running panorama using weighted blend ---
-        stitched_img = blend_image_pair(
-            stitched_img, stitch_mask.astype(np.uint8),
-            warped_n, mask_n, mode="blend"
-        )
+        # Blend onto panorama (weighted)
+        stitched_img = blend_image_pair(stitched_img, stitch_mask.astype(np.uint8),
+                                        warped_n, mask_n, mode="blend")
 
         # Update accumulated mask
-        stitch_mask = (stitch_mask | (mask_n > 0))
+        stitch_mask = stitch_mask | (mask_n > 0)
 
-        # ---------------------------------------
+                # ---------------------------------------
         # END ADD YOUR CODE HERE
         # ---------------------------------------
 
