@@ -112,11 +112,28 @@ def stitch_img(*args):
         # Update accumulated mask
         stitch_mask = stitch_mask | (mask_n > 0)
 
-                # ---------------------------------------
+        # ---------------------------------------
         # END ADD YOUR CODE HERE
         # ---------------------------------------
 
     # OPTIONAL: remove excess padding from the output
-    stitched_img = bbox_crop(stitched_img)
+    #stitched_img = bbox_crop(stitched_img)
+
+        # ---- tight crop by the accumulated mask ----
+    ys, xs = np.where(stitch_mask)
+    if ys.size > 0 and xs.size > 0:
+        y0, y1 = ys.min(), ys.max() + 1
+        x0, x1 = xs.min(), xs.max() + 1
+        stitched_img = stitched_img[y0:y1, x0:x1, :]
+
+    # ---- optional: inpaint tiny residual black pixels along borders ----
+    # (Requires: import cv2 at top of file)
+    import cv2
+    if stitched_img.dtype != np.uint8:
+        stitched_img = np.clip(np.round(stitched_img), 0, 255).astype(np.uint8)
+    gray = cv2.cvtColor(stitched_img, cv2.COLOR_BGR2GRAY)
+    holes = (gray == 0).astype('uint8') * 255  # mask of pure black pixels
+    if holes.any():
+        stitched_img = cv2.inpaint(stitched_img, holes, 3, cv2.INPAINT_TELEA)
 
     return stitched_img

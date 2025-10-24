@@ -262,11 +262,136 @@ def challenge1d():
     print("Saved: stitched.png")
 
 
-
-
 def challenge1e():
-    # User can adapt with their own images
-    print("Implement your own panorama with stitch_img()")
+    """
+    Three-photo mosaic (img1, img2, img3) without touching stitchImg.py.
+    - Loads the three images (jpg/png/jpeg accepted).
+    - Normalizes heights (and lightly harmonizes exposure).
+    - Scores ALL 6 permutations using SIFT+RANSAC on adjacent pairs.
+    - Picks the best order (so the middle becomes the reference in stitch_img).
+    - Stitches and saves results.
+    """
+    import os, glob
+    import cv2
+    import numpy as np
+    from stitchImg import stitch_img
+    from genSIFTMatches import gen_sift_matches
+    from runRANSAC import run_ransac
+    from applyHomography import apply_homography
+
+    # ---------- helpers ----------
+    def load_any(basename):
+        # Try exact, then common extensions, case-insensitive.
+        cand = [basename]
+        root, ext = os.path.splitext(basename)
+        if ext == "":
+            cand += [f"{root}.{e}" for e in ["jpg","jpeg","png","JPG","JPEG","PNG"]]
+        for p in cand:
+            im = cv2.imread(p)
+            if im is not None:
+                return im, p
+        for p in glob.glob(f"{root}.*"):
+            im = cv2.imread(p)
+            if im is not None:
+                return im, p
+        return None, None
+
+    def resize_to_h(im, H):
+        if im.shape[0] == H: return im
+        W = int(round(im.shape[1] * (H / im.shape[0])))
+        return cv2.resize(im, (W, H), interpolation=cv2.INTER_LINEAR)
+
+    def harmonize_L(a, b):
+        """Match a's L-channel stats to b's to help SIFT on sky/grass."""
+        al = cv2.cvtColor(a, cv2.COLOR_BGR2LAB).astype(np.float32)
+        bl = cv2.cvtColor(b, cv2.COLOR_BGR2LAB).astype(np.float32)
+        ma, sa = al[...,0].mean(), al[...,0].std() + 1e-6
+        mb, sb = bl[...,0].mean(), bl[...,0].std() + 1e-6
+        al[...,0] = (al[...,0] - ma) * (sb/sa) + mb
+        al = np.clip(al, 0, 255).astype(np.uint8)
+        return cv2.cvtColor(al, cv2.COLOR_LAB2BGR)
+
+    def score_pair(A, B):
+        """
+        Score how well A->B stitches using SIFT+RANSAC.
+        Returns (inlier_ratio, p95_error, combined_score).
+        """
+        xs, xd = gen_sift_matches(A, B)
+        if xs.shape[0] < 8:
+            return 0.0, np.inf, -1e9
+        inliers_id, H = run_ransac(xs, xd, ransac_n=300, eps=2.5)
+        if H is None or inliers_id.size < 4:
+            return 0.0, np.inf, -1e9
+        proj = apply_homography(H, xs)
+        err  = np.linalg.norm(proj - xd, axis=1)
+        err_inl = err[inliers_id]
+        ratio = inliers_id.size / max(1, xs.shape[0])
+        p95   = np.percentile(err_inl, 95) if err_inl.size else np.inf
+        # Combined score: prioritize ratio, then penalize error
+        comb  = ratio - 0.005 * p95
+        return ratio, p95, comb
+
+    # ---------- load images ----------
+    img1, p1 = load_any("img1")
+    img2, p2 = load_any("img2")
+    img3, p3 = load_any("img3")
+    if img1 is None or img2 is None or img3 is None:
+        raise FileNotFoundError("Could not find img1/img2/img3 with common extensions (.jpg/.png/.jpeg).")
+
+    print(f"[1e] Loaded: {p1}, {p2}, {p3}")
+
+    # Normalize size (same height; cap to ~900px for robust SIFT)
+    Ht = min(img1.shape[0], img2.shape[0], img3.shape[0], 900)
+    img1 = resize_to_h(img1, Ht)
+    img2 = resize_to_h(img2, Ht)
+    img3 = resize_to_h(img3, Ht)
+
+    # Light exposure harmonization (match to img2 as anchor)
+    img1 = harmonize_L(img1, img2)
+    img3 = harmonize_L(img3, img2)
+
+    # ---------- evaluate all orders ----------
+    orders = [
+        ("(1,2,3)", (img1, img2, img3)),
+        ("(1,3,2)", (img1, img3, img2)),
+        ("(2,1,3)", (img2, img1, img3)),
+        ("(2,3,1)", (img2, img3, img1)),
+        ("(3,1,2)", (img3, img1, img2)),
+        ("(3,2,1)", (img3, img2, img1)),
+    ]
+
+    def score_order(triple):
+        A, B, C = triple
+        r1, e1, s1 = score_pair(A, B)
+        r2, e2, s2 = score_pair(B, C)
+        # prefer good inlier ratios on both pairs; penalize big errors
+        total = s1 + s2
+        return total, (r1, e1), (r2, e2)
+
+    best = None
+    for name, triple in orders:
+        total, (r1,e1), (r2,e2) = score_order(triple)
+        print(f"[1e] order {name}: pair1 ratio={r1:.2f}, p95={e1:.2f}px | "
+              f"pair2 ratio={r2:.2f}, p95={e2:.2f}px | score={total:.3f}")
+        if (best is None) or (total > best[0]):
+            best = (total, name, triple)
+
+    total, name, ordered = best
+    print(f"[1e] Chosen L-C-R order: {name}")
+
+    # Save inputs actually used (for submission)
+    for i, im in enumerate(ordered, 1):
+        cv2.imwrite(f"my_photo_{i}.png", im)
+
+    # ---------- stitch (stitchImg uses middle as reference) ----------
+    pano = stitch_img(*ordered)
+    cv2.imwrite("my_stitched.png", pano)
+    print("Saved: my_photo_1.png, my_photo_2.png, my_photo_3.png, my_stitched.png")
+
+
+
+
+
 
 
 # -----------------------------------------------------------------------------
