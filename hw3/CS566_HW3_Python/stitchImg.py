@@ -70,41 +70,45 @@ def stitch_img(*args):
         # ---------------------------------------
         # Run RANSAC to find homography (source: img_n -> dest: stitched_img)
         # kp_stitched are points in the current canvas; kp_n are points in img_n
+        # Run RANSAC to find homography (source: img_n -> dest: stitched_img)
+        # kp_stitched are points in the current canvas; kp_n are points in img_n
         inliers_id, H_src_to_canvas = run_ransac(kp_n, kp_stitched, ransac_n=100, eps=3.0)
 
         # If RANSAC failed or produced too few inliers, skip this image
-        if H_src_to_canvas is None or inliers_id.size < 4:
+        if (H_src_to_canvas is None) or (inliers_id.size < 4):
             continue
+
+        # --- keep homography scale sane to reduce extreme perspective stretch ---
+        if H_src_to_canvas[2, 2] != 0:
+            H_src_to_canvas = H_src_to_canvas / H_src_to_canvas[2, 2]
 
         # Backward warp needs (canvas -> src) homography
         H_canvas_to_src = np.linalg.inv(H_src_to_canvas)
 
-        # Warp img_n into the canvas frame
+        # --- warp current image into the canvas frame ---
         mask_n, warped_n = backward_warp_img(
-            img_n,
-            H_canvas_to_src,
-            (W_stitched, H_stitched)  # (width, height)
+            img_n, H_canvas_to_src, (W_stitched, H_stitched)   # (width, height)
         )
+        mask_n = mask_n.astype(np.uint8)
 
-        # Blend the newly warped image onto the running panorama
+        # Ensure dtypes match blend function expectations
+        if warped_n.dtype != stitched_img.dtype:
+            warped_n = warped_n.astype(stitched_img.dtype)
+
+        # --- blend onto the running panorama using weighted blend ---
         stitched_img = blend_image_pair(
-            stitched_img,
-            stitch_mask.astype(np.uint8),
-            warped_n,
-            mask_n.astype(np.uint8),
-            mode="blend"
+            stitched_img, stitch_mask.astype(np.uint8),
+            warped_n, mask_n, mode="blend"
         )
 
         # Update accumulated mask
-        stitch_mask = (stitch_mask | mask_n.astype(bool))
-
-        # Run RANSAC to find homography
+        stitch_mask = (stitch_mask | (mask_n > 0))
 
         # ---------------------------------------
         # END ADD YOUR CODE HERE
         # ---------------------------------------
 
     # OPTIONAL: remove excess padding from the output
-    # stitched_img = bbox_crop(stitched_img)
+    stitched_img = bbox_crop(stitched_img)
 
     return stitched_img
