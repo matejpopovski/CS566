@@ -63,15 +63,9 @@ def blend_image_pair(wrapped_imgs, masks, wrapped_imgd, maskd, mode):
                         w2[(m2 == 1) & (m1 == 0)] = 1.0
 
                         channel_out = w1 * src + w2 * dst
-        else:
-            raise ValueError(f"Unknown blending mode: {mode}")
+            else:
+                raise ValueError(f"Unknown blending mode: {mode}")
 
-        out_img[:, :, c] = channel_out
-            #
-            # you need to compute the weighted masks (for src and dest) using
-            # bwdist, and use them to form the output image.
-            #
-            pass
         out_img[:, :, c] = channel_out
 
     # convert out_img to right type
