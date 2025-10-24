@@ -68,7 +68,7 @@ def blend_image_pair(wrapped_imgs, masks, wrapped_imgd, maskd, mode):
         else:
             raise ValueError(f"Unknown blending mode: {mode}")
 
-            out_img[:, :, c] = channel_out
+        out_img[:, :, c] = channel_out
 
     # convert out_img to right type
     if input_type == np.uint8:

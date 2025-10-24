@@ -250,14 +250,18 @@ def challenge1c():
 
 
 def challenge1d():
-    # Test image stitching
-    imgc = cv2.imread("mountain_center.png").astype(np.float32) / 255.0
-    imgl = cv2.imread("mountain_left.png").astype(np.float32) / 255.0
-    imgr = cv2.imread("mountain_right.png").astype(np.float32) / 255.0
+    # Stitch an arbitrary number of images using the "blend" mode
+    imgl = cv2.imread("mountain_left.png")
+    imgc = cv2.imread("mountain_center.png")
+    imgr = cv2.imread("mountain_right.png")
 
-    # TODO: Modify stitchImg.py code
-    stitched_img = stitch_img(imgl, imgc, imgr)
-    cv2.imwrite("mountain_panorama.png", (stitched_img * 255).astype(np.uint8))
+    if imgl is None or imgc is None or imgr is None:
+        raise FileNotFoundError("Missing mountain_left/center/right.png")
+
+    pano = stitch_img(imgl, imgc, imgr)
+    cv2.imwrite("stitched.png", pano)
+    print("Saved: stitched.png")
+
 
 
 def challenge1e():
