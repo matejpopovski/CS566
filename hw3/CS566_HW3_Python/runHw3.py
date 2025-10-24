@@ -207,23 +207,46 @@ def challenge1b():
 
 
 def challenge1c():
-    # Test image blending
-    fish = cv2.imread("escher_fish.png")
-    horse = cv2.imread("escher_horsemen.png")
+    # Blending demo: compare "overlay" vs weighted "blend"
+    import cv2
+    import numpy as np
 
-    # Assume masks precomputed or alpha channel
-    fish_mask = (fish[..., 2] > 0).astype(
-        np.uint8) if fish.shape[2] == 3 else np.ones(fish.shape[:2], np.uint8)
-    horse_mask = (horse[..., 2] > 0).astype(
-        np.uint8) if horse.shape[2] == 3 else np.ones(horse.shape[:2], np.uint8)
+    # Use files that exist in your repo
+    img1 = cv2.imread("mountain_left.png")
+    img2 = cv2.imread("mountain_center.png")
 
-    blended_result = blend_image_pair(  # TODO: Modify BlendImagPair.py code
-        fish, fish_mask, horse, horse_mask, mode="blend")
-    cv2.imwrite("blended_result.png", blended_result)
+    if img1 is None or img2 is None:
+        raise FileNotFoundError("Could not read mountain_left.png or mountain_center.png")
 
-    overlay_result = blend_image_pair(  # TODO: Modify BlendImagPair.py code
-        fish, fish_mask, horse, horse_mask, mode="overlay")
-    cv2.imwrite("overlay_result.png", overlay_result)
+    # Make sure same size (resize img2 to img1 if needed)
+    H1, W1 = img1.shape[:2]
+    H2, W2 = img2.shape[:2]
+    if (H1, W1) != (H2, W2):
+        img2 = cv2.resize(img2, (W1, H1), interpolation=cv2.INTER_LINEAR)
+
+    # Build simple overlapping masks:
+    # - img1 dominates the LEFT side
+    # - img2 dominates the RIGHT side
+    H, W = img1.shape[:2]
+    mask1 = np.zeros((H, W), dtype=np.uint8)
+    mask2 = np.zeros((H, W), dtype=np.uint8)
+
+    # 60% / 60% with 20% overlap in the middle
+    cut1 = int(0.6 * W)          # img1 active up to 60%
+    cut2 = int(0.4 * W)          # img2 active from 40%
+    mask1[:, :cut1] = 1
+    mask2[:, cut2:] = 1
+
+    # OVERLAY (hard seam)
+    out_overlay = blend_image_pair(img1, mask1, img2, mask2, mode="overlay")
+    cv2.imwrite("blend_overlay.png", out_overlay)
+
+    # BLEND (distance-transform weighted, smooth seam)
+    out_blend = blend_image_pair(img1, mask1, img2, mask2, mode="blend")
+    cv2.imwrite("blend_weighted.png", out_blend)
+
+    print("Saved: blend_overlay.png, blend_weighted.png")
+
 
 
 def challenge1d():
