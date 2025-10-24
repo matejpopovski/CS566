@@ -38,33 +38,33 @@ def blend_image_pair(wrapped_imgs, masks, wrapped_imgd, maskd, mode):
                 src = wrapped_imgs[..., c].astype(np.float64)
                 dst = wrapped_imgd[..., c].astype(np.float64)
 
-            if mode == "overlay":
-                channel_out = src.copy()
-                channel_out[maskd.astype(bool)] = dst[maskd.astype(bool)]
+                if mode == "overlay":
+                    channel_out = src.copy()
+                    channel_out[maskd.astype(bool)] = dst[maskd.astype(bool)]
 
-            elif mode == "blend":
-                m1 = (masks > 0).astype(np.uint8)
-                m2 = (maskd > 0).astype(np.uint8)
+                elif mode == "blend":
+                    m1 = (masks > 0).astype(np.uint8)
+                    m2 = (maskd > 0).astype(np.uint8)
 
-                union = (m1 | m2).astype(np.uint8)
-                if not np.any(union):
-                    channel_out = np.zeros_like(src, dtype=np.float64)
-                else:
-                    # Distance to boundary *inside* each region
-                    d1 = bwdist(m1) * m1
-                    d2 = bwdist(m2) * m2
+                    union = (m1 | m2).astype(np.uint8)
+                    if not np.any(union):
+                        channel_out = np.zeros_like(src, dtype=np.float64)
+                    else:
+                        # Distance to boundary *inside* each region
+                        d1 = bwdist(m1) * m1
+                        d2 = bwdist(m2) * m2
 
-                    wsum = d1 + d2 + 1e-8
-                    w1 = np.where(union, d1 / wsum, 0.0)
-                    w2 = np.where(union, d2 / wsum, 0.0)
+                        wsum = d1 + d2 + 1e-8
+                        w1 = np.where(union, d1 / wsum, 0.0)
+                        w2 = np.where(union, d2 / wsum, 0.0)
 
-                    # Where only one is present, give it full weight
-                    w1[(m1 == 1) & (m2 == 0)] = 1.0
-                    w2[(m2 == 1) & (m1 == 0)] = 1.0
+                        # Where only one is present, give it full weight
+                        w1[(m1 == 1) & (m2 == 0)] = 1.0
+                        w2[(m2 == 1) & (m1 == 0)] = 1.0
 
-                    channel_out = w1 * src + w2 * dst
-            else:
-                raise ValueError(f"Unknown blending mode: {mode}")
+                        channel_out = w1 * src + w2 * dst
+        else:
+            raise ValueError(f"Unknown blending mode: {mode}")
 
         out_img[:, :, c] = channel_out
             #
