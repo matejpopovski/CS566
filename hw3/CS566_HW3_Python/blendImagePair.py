@@ -81,3 +81,4 @@ def blend_image_pair(wrapped_imgs, masks, wrapped_imgd, maskd, mode):
         out_img = out_img.astype(np.float32)
 
     return out_img
+
