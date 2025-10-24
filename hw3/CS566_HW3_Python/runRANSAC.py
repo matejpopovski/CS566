@@ -13,7 +13,27 @@ def run_ransac(Xs, Xd, ransac_n, eps):
         # ---------------------------
         # START ADDING YOUR CODE HERE
         # ---------------------------
+        # Sample 4 unique correspondences
+        idx = np.random.choice(pts_id, size=4, replace=False)
+        try:
+            H_try = compute_homography(Xs[idx], Xd[idx])
+        except Exception:
+            continue  # degenerate sample
 
+        # Project all source points and compute reprojection error
+        proj = apply_homography(H_try, Xs)  # (N,2)
+        err = np.linalg.norm(proj - Xd, axis=1)
+
+        inliers = err < eps
+        n_inl = int(inliers.sum())
+        if n_inl > inliers_id.size:
+            inliers_id = np.where(inliers)[0]
+            # Refit on inliers if we have enough
+            if n_inl >= 4:
+                try:
+                    H = compute_homography(Xs[inliers], Xd[inliers])
+                except Exception:
+                    H = H_try
         # ---------------------------
         # END ADDING YOUR CODE HERE
         # ---------------------------
