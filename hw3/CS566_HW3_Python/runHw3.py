@@ -130,6 +130,17 @@ def challenge1a():
     # portrait_pts = np.array([[xp1, yp1], [xp2, yp2], [xp3, yp3], [xp4, yp4]])
     # bg_pts = np.array([[xb1, yb1], [xb2, yb2], [xb3, yb3], [xb4, yb4]])
     # H = compute_homography(portrait_pts, bg_pts)
+    # 1) Click 4 corners on the PORTRAIT (clockwise), then their targets on the BILLBOARD (clockwise)
+    portrait_pts = get_points_from_user(
+        portrait_img, 4, "Click 4 corners on the PORTRAIT (clockwise)"
+    ).astype(np.float32)
+
+    bg_pts = get_points_from_user(
+        bg_img, 4, "Click corresponding 4 points on the BILLBOARD (clockwise)"
+    ).astype(np.float32)
+
+    # 2) Compute homography that maps portrait -> billboard
+    H = compute_homography(portrait_pts, bg_pts)
 
     dest_w, dest_h = bg_img.shape[1], bg_img.shape[0]
 
