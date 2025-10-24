@@ -68,11 +68,36 @@ def stitch_img(*args):
         # ---------------------------------------
         # ADD YOUR CODE HERE
         # ---------------------------------------
-        # Blend img_n into stitched_img, after finding the right homography
-        # to register it, and warping it with the reverse transformation
-        # (backward warp).
-        # Use RANSAC to avoid problems caused by outliers.
-        #
+        # Run RANSAC to find homography (source: img_n -> dest: stitched_img)
+        # kp_stitched are points in the current canvas; kp_n are points in img_n
+        inliers_id, H_src_to_canvas = run_ransac(kp_n, kp_stitched, ransac_n=100, eps=3.0)
+
+        # If RANSAC failed or produced too few inliers, skip this image
+        if H_src_to_canvas is None or inliers_id.size < 4:
+            continue
+
+        # Backward warp needs (canvas -> src) homography
+        H_canvas_to_src = np.linalg.inv(H_src_to_canvas)
+
+        # Warp img_n into the canvas frame
+        mask_n, warped_n = backward_warp_img(
+            img_n,
+            H_canvas_to_src,
+            (W_stitched, H_stitched)  # (width, height)
+        )
+
+        # Blend the newly warped image onto the running panorama
+        stitched_img = blend_image_pair(
+            stitched_img,
+            stitch_mask.astype(np.uint8),
+            warped_n,
+            mask_n.astype(np.uint8),
+            mode="blend"
+        )
+
+        # Update accumulated mask
+        stitch_mask = (stitch_mask | mask_n.astype(bool))
+
         # Run RANSAC to find homography
 
         # ---------------------------------------
