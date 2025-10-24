@@ -9,20 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
-def cylindrical_warp(img, f):
-    """Warp image into cylindrical coordinates using focal length f."""
-    h, w = img.shape[:2]
-    K = np.array([[f, 0, w/2],
-                  [0, f, h/2],
-                  [0, 0,   1]])
-    y_i, x_i = np.indices((h, w))
-    X = (x_i - w/2) / f
-    Y = (y_i - h/2) / f
-    Z = np.sqrt(X**2 + 1)
-    mapx = f * np.arctan(X) + w/2
-    mapy = f * Y / Z + h/2
-    return cv2.remap(img, mapx.astype(np.float32), mapy.astype(np.float32), cv2.INTER_LINEAR)
-
 def stitch_img(*args):
     # GENERAL NOTE: Feel free to change all of this file, not just the
     #               "ADD YOUR CODE HERE" sections. We're just trying to help
