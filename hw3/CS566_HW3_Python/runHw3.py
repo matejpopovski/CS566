@@ -164,30 +164,45 @@ def challenge1b():
     imgd = cv2.imread("mountain_center.png")
 
     xs, xd = gen_sift_matches(imgs, imgd)
-    # xs and xd are the centers of matched frames
-    # xs and xd are nx2 matrices, where the first column contains the x
-    # coordinates and the second column contains the y coordinates
+    # xs and xd are nx2 matrices (x,y) of matched keypoints
 
+    # BEFORE RANSAC (all raw matches)
     before_img = show_correspondence(imgs, imgd, xs, xd)
     cv2.imwrite("before_ransac.png", before_img)
 
     # Use RANSAC to reject outliers
-    ransac_n = 300        # Max number of iterations (recommended)
-    ransac_eps = 2.5      # Acceptable alignment error in pixels (recommended)
+    ransac_n = 100        # recommended
+    ransac_eps = 3.0      # pixels, recommended
     H_3x3 = np.eye(3)     # placeholder
 
-    # ransac_n = ??  # TODO - Max number of iterations
-    # ransac_eps = ?  # TODO - Acceptable alignment error
+    (inliers_id, H_3x3) = run_ransac(xs, xd, ransac_n, ransac_eps)
 
-    (inliers_id, H_3x3) = run_ransac(xs, xd, ransac_n,
-                                     ransac_eps)  # TODO - Modify runRANSAC.py code
+    # ---- quality metrics for RANSAC result ----
+    proj_all = apply_homography(H_3x3, xs)         # reproject all src points
+    err_all  = np.linalg.norm(proj_all - xd, axis=1)
 
     if len(inliers_id) > 0:
-        after_img = show_correspondence(
-            imgs, imgd, xs[inliers_id], xd[inliers_id])
+        err_inl = err_all[inliers_id]
+
+        def _stats(e):
+            return (e.mean(), np.median(e), np.percentile(e, 95))
+
+        m_inl, med_inl, p95_inl = _stats(err_inl)
+        m_all, med_all, p95_all = _stats(err_all)
+        span_x, span_y = np.ptp(xs[inliers_id], axis=0)  # spatial coverage
+
+        print(f"[1b] Inliers: {len(inliers_id)}/{len(xs)} "
+              f"({100*len(inliers_id)/len(xs):.1f}%)")
+        print(f"[1b] Inlier error: mean={m_inl:.2f}px, median={med_inl:.2f}px, p95={p95_inl:.2f}px")
+        print(f"[1b] All error:    mean={m_all:.2f}px, median={med_all:.2f}px, p95={p95_all:.2f}px")
+        print(f"[1b] Inlier span:  Δx={span_x:.1f}, Δy={span_y:.1f}")
+
+        # AFTER RANSAC (inliers only)
+        after_img = show_correspondence(imgs, imgd, xs[inliers_id], xd[inliers_id])
         cv2.imwrite("after_ransac.png", after_img)
     else:
         print('no correspondence points found.')
+
 
 
 
@@ -232,5 +247,6 @@ def challenge1e():
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
     run_hw3(*sys.argv[1:])
+
 
 
