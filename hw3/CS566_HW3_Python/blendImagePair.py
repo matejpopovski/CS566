@@ -3,6 +3,13 @@ from scipy.ndimage import distance_transform_edt as bwdist
 
 
 def blend_image_pair(wrapped_imgs, masks, wrapped_imgd, maskd, mode):
+    # Normalize mode and accept a few aliases
+    # if mode is None:
+    #     mode = "overlay"
+    # if isinstance(mode, bytes):
+    #     mode = mode.decode("utf-8", errors="ignore")
+    # mode = mode.strip().lower()
+
     Hs, Ws, Cs = wrapped_imgs.shape
     Hd, Wd, Cd = wrapped_imgd.shape
 
@@ -34,37 +41,32 @@ def blend_image_pair(wrapped_imgs, masks, wrapped_imgd, maskd, mode):
             # ---------------------------
             # ADD YOUR CODE HERE
             # ---------------------------
-            for c in range(Cs):
-                src = wrapped_imgs[..., c].astype(np.float64)
-                dst = wrapped_imgd[..., c].astype(np.float64)
+            # Distance-transform weighted blending (feathered seam)
+            m1 = binary_mask_s.astype(np.uint8)
+            m2 = binary_mask_d.astype(np.uint8)
+            union = (m1 | m2).astype(np.uint8)
 
-                if mode == "overlay":
-                    channel_out = src.copy()
-                    channel_out[maskd.astype(bool)] = dst[maskd.astype(bool)]
-
-                elif mode == "blend":
-                    m1 = (masks > 0).astype(np.uint8)
-                    m2 = (maskd > 0).astype(np.uint8)
-
-                    union = (m1 | m2).astype(np.uint8)
-                    if not np.any(union):
-                        channel_out = np.zeros_like(src, dtype=np.float64)
-                    else:
-                        # Distance to boundary *inside* each region
-                        d1 = bwdist(m1) * m1
-                        d2 = bwdist(m2) * m2
-
-                        wsum = d1 + d2 + 1e-8
-                        w1 = np.where(union, d1 / wsum, 0.0)
-                        w2 = np.where(union, d2 / wsum, 0.0)
-
-                        # Where only one is present, give it full weight
-                        w1[(m1 == 1) & (m2 == 0)] = 1.0
-                        w2[(m2 == 1) & (m1 == 0)] = 1.0
-
-                        channel_out = w1 * src + w2 * dst
+            if not np.any(union):
+                channel_out = np.zeros_like(S, dtype=np.float64)
             else:
-                raise ValueError(f"Unknown blending mode: {mode}")
+                # Distance to boundary *inside* each mask (zero outside)
+                d1 = bwdist(m1) * m1
+                d2 = bwdist(m2) * m2
+
+                # Normalize weights over the union (+eps to avoid /0)
+                wsum = d1 + d2 + 1e-8
+                w1 = np.where(union, d1 / wsum, 0.0)
+                w2 = np.where(union, d2 / wsum, 0.0)
+
+                # Ensure exclusive regions take full weight
+                w1[(m1 == 1) & (m2 == 0)] = 1.0
+                w2[(m2 == 1) & (m1 == 0)] = 1.0
+
+                # Blend this channel
+                channel_out = w1 * S + w2 * D
+
+        else:
+            raise ValueError(f"Unknown blending mode: {mode}")
 
             out_img[:, :, c] = channel_out
 
