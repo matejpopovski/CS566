@@ -172,8 +172,8 @@ def challenge1b():
     cv2.imwrite("before_ransac.png", before_img)
 
     # Use RANSAC to reject outliers
-    ransac_n = 100        # Max number of iterations (recommended)
-    ransac_eps = 3.0      # Acceptable alignment error in pixels (recommended)
+    ransac_n = 300        # Max number of iterations (recommended)
+    ransac_eps = 2.5      # Acceptable alignment error in pixels (recommended)
     H_3x3 = np.eye(3)     # placeholder
 
     # ransac_n = ??  # TODO - Max number of iterations
