@@ -54,7 +54,10 @@ def challenge1a():
     half_window_size = 12
 
     index_map = generate_index_map(gray_stack, half_window_size)
-    io.imsave("index_map.png", index_map.astype("uint8"))
+
+    from skimage import exposure, io
+    index_map_norm = exposure.rescale_intensity(index_map, out_range=(0, 255)).astype("uint8")
+    io.imsave("index_map.png", index_map_norm)
 
 
 
