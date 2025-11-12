@@ -47,26 +47,57 @@ def honesty():
 # --------------------------------------------------------------------------
 
 def challenge1a():
-    focal_stack_dir = "stack"
-    rgb_stack, gray_stack = load_focal_stack(focal_stack_dir)
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from skimage import exposure
+    from loadFocalStack import load_focal_stack
+    from generateIndexMap import generate_index_map
 
-    # half window size for the spatial box filter used on the SML focus map
+    # === 1. Load the focal stack ===
+    rgb_stack, gray_stack = load_focal_stack("stack")
+
+    # === 2. Generate the index map using grayscale stack ===
     half_window_size = 12
-
     index_map = generate_index_map(gray_stack, half_window_size)
 
-    from skimage import exposure, io
+    # === 3. Normalize for visualization ===
     index_map_norm = exposure.rescale_intensity(index_map, out_range=(0, 255)).astype("uint8")
-    io.imsave("index_map.png", index_map_norm)
+
+    # === 4. Save (overwrite existing file) ===
+    plt.imsave("index_map.png", index_map_norm, cmap="gray")
+    print("index_map.png has been updated and saved.")
+
+    # === 5. Show the result ===
+    plt.figure()
+    plt.imshow(index_map_norm, cmap="gray")
+    plt.title("Computed Index Map (Challenge 1a)")
+    plt.axis("off")
+    plt.show()
+
 
 
 
 def challenge1b():
-    focal_stack_dir = "stack"
-    rgb_stack, gray_stack = load_focal_stack(focal_stack_dir)
+    import numpy as np
+    from skimage import io
+    from loadFocalStack import load_focal_stack
+    from refocusApp import refocus_app
 
+    # === 1. Load the focal stack ===
+    rgb_stack, gray_stack = load_focal_stack("stack")
+
+    # === 2. Load the index map ===
     index_map = io.imread("index_map.png")
+
+    # Handle different possible shapes
+    if index_map.ndim == 3:
+        # If the PNG is saved as RGB, take the first channel
+        index_map = index_map[:, :, 0]
+    index_map = index_map.astype(np.float32)
+
+    # === 3. Run the interactive refocusing app ===
     refocus_app(rgb_stack, index_map)
+
 
 
 

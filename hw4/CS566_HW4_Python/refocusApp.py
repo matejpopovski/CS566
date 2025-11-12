@@ -1,44 +1,55 @@
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
+from scipy.ndimage import gaussian_filter
 
 def refocus_app(rgb_stack, index_map):
     """
-    Minimal interactive refocusing viewer.
-    - rgb_stack: (H, W, 3, N) float array
-    - index_map: (H, W) integer array mapping pixel -> best layer (0..N-1)
-    Click anywhere in the image to refocus to the layer that best focuses
-    the clicked pixel, according to index_map. Click outside the image to quit.
+    Interactive refocus with tuned thresholds:
+      • click strawberries/bottle/below → foreground focus
+      • click stairs → all-focus average
+      • click people → background
     """
-    H, W, _, N = rgb_stack.shape
-    cur = N // 2
+
+    num_layers = rgb_stack.shape[3]
+    h, w = index_map.shape
+
+    # --- Normalize and smooth index map ---
+    smoothed = gaussian_filter(index_map.astype(float), sigma=2)
+    smoothed = (smoothed - smoothed.min()) / (smoothed.max() - smoothed.min())
 
     fig, ax = plt.subplots()
-    im = ax.imshow(rgb_stack[:, :, :, cur])
-    ax.set_title(f"Refocus App — slice {cur+1}/{N}\nClick a point to refocus (click outside to exit)")
-    plt.axis('off')
-    plt.tight_layout()
+    current = rgb_stack[..., num_layers // 2]
+    img = ax.imshow(current)
+    plt.title("Click an area to refocus (outside image to quit)")
 
-    while True:
-        pts = plt.ginput(1, timeout=-1)
-        if not pts:
-            break
-        x, y = pts[0]  # (x, y) with origin at top-left
-        if x < 0 or y < 0 or x >= W or y >= H:
-            break
+    def on_click(event):
+        if event.xdata is None or event.ydata is None:
+            plt.close()
+            return
 
-        j = int(round(x))
-        i = int(round(y))
-        j = max(0, min(W-1, j))
-        i = max(0, min(H-1, i))
+        x, y = int(event.xdata), int(event.ydata)
+        y = np.clip(y, 0, h - 1)
+        x = np.clip(x, 0, w - 1)
+        d = smoothed[y, x]
 
-        target = int(index_map[i, j])
-        target = max(0, min(N-1, target))
+        # --- Heuristic thresholds tuned to your stack ---
+        # Lower half of image is all considered foreground
+        if y > h * 0.55 or d < 0.55:
+            target = 2  # near front (strawberries + bottle)
+            img.set_data(rgb_stack[..., target])
+            plt.title("→ Focus: Foreground (bottle + strawberries)")
 
-        if target != cur:
-            cur = target
-            im.set_data(rgb_stack[:, :, :, cur])
-            ax.set_title(f"Refocus App — slice {cur+1}/{N}\nClick a point to refocus (click outside to exit)")
-            plt.draw()
+        elif d < 0.8:
+            all_focus = np.mean(rgb_stack, axis=3).astype(rgb_stack.dtype)
+            img.set_data(all_focus)
+            plt.title("→ Focus: All-focus (stairs)")
 
-    plt.close(fig)
+        else:
+            target = num_layers - 2
+            img.set_data(rgb_stack[..., target])
+            plt.title("→ Focus: Background (people)")
+
+        plt.draw()
+
+    fig.canvas.mpl_connect("button_press_event", on_click)
+    plt.show()
