@@ -39,7 +39,7 @@ def runHw4(*args):
 def honesty():
     # Type your full name and uni (both in string) to state your agreement
     # to the Code of Academic Integrity.
-    sign_academic_honesty_policy("full_name", "stu_id")
+    sign_academic_honesty_policy("Matej Popovski", "popovski")
 
 
 # --------------------------------------------------------------------------
@@ -47,26 +47,15 @@ def honesty():
 # --------------------------------------------------------------------------
 
 def challenge1a():
-    # Load the focal stack into memory
     focal_stack_dir = "stack"
-    rgb_stack, gray_stack = load_focal_stack(focal_stack_dir)  # TODO: Modify loadFocalStack.py
-    # rgb_stack is an mxnx3k matrix, where m and n are the height and width of
-    # the image, respectively, and 3k is the number of images in a focal stack
-    # multiplied by 3 (each image contains RGB channels).
-    #
-    # rgb_stack will only be used for the refocusing app viewer (it is not used
-    # here).
-    #
-    # gray_stack is an mxnxk matrix.
+    rgb_stack, gray_stack = load_focal_stack(focal_stack_dir)
 
-    # Specify the (half) window size used for focus measure computation
-    half_window_size = 0  # TODO: correct value here.
-    # half_window_size = ??
-    half_window_size = 16
+    # half window size for the spatial box filter used on the SML focus map
+    half_window_size = 12
 
-    # Generate an index map, here we will only use the gray-scale images
-    index_map = generate_index_map(gray_stack, half_window_size) # TODO: Modify generateIndexMap.py
+    index_map = generate_index_map(gray_stack, half_window_size)
     io.imsave("index_map.png", index_map.astype("uint8"))
+
 
 
 def challenge1b():
@@ -74,7 +63,8 @@ def challenge1b():
     rgb_stack, gray_stack = load_focal_stack(focal_stack_dir)
 
     index_map = io.imread("index_map.png")
-    refocus_app(rgb_stack, index_map) # TODO: Modify refocusApp.py
+    refocus_app(rgb_stack, index_map)
+
 
 
 # --------------------------------------------------------------------------
