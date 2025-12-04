@@ -87,12 +87,6 @@ def challenge1b():
     # Load the index map
     index_map = io.imread("index_map.png")
 
-    # Handle different possible shapes
-    if index_map.ndim == 3:
-        # If the PNG is saved as RGB, take the first channel
-        index_map = index_map[:, :, 0]
-    index_map = index_map.astype(int)
-
     # Run the interactive refocusing app
     refocus_app(rgb_stack, index_map)
 
