@@ -4,95 +4,364 @@
   <meta charset="UTF-8" />
   <title>Hand Gesture Interface</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Optional Google Font; page still works without network -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <header>
-    <h1>Hand Gesture Interface</h1>
-    <p>Aniket Patel · Matthew Kasper · Matej Popovski</p>
+  <!-- Top gradient hero -->
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <p class="hero-kicker">CS 566 · Computer Vision</p>
+        <h1>Hand Gesture Interface</h1>
+        <p class="hero-subtitle">
+          A real-time, webcam-based hand gesture system for controlling your computer
+          without a mouse, powered by a fine-tuned YOLOv12 model.
+        </p>
+        <p class="hero-authors">
+          Matej Popovski · Matthew Kasper · Aniket Patel
+        </p>
+        <div class="hero-tags">
+          <span class="tag">YOLOv12n</span>
+          <span class="tag">Custom Dataset</span>
+          <span class="tag">Real-Time Inference</span>
+        </div>
+      </div>
+
+      <div class="hero-media">
+        <div class="hero-card">
+          <img src="images/yolo.png" alt="YOLO detection overview diagram" />
+        </div>
+      </div>
+    </div>
   </header>
 
-  <nav>
-    <a href="#motivation">Motivation</a>
-    <a href="#approach">Approach</a>
-    <a href="#dataset">Dataset</a>
-    <a href="#implementation">Implementation</a>
-    <a href="#results">Results</a>
-    <a href="#problems">Problems & Lessons</a>
-    <a href="#future-work">Future Work</a>
-    <a href="#downloads">Code & Downloads</a>
+  <!-- Sticky navigation -->
+  <nav class="top-nav">
+    <div class="nav-inner">
+      <span class="nav-title">Hand Gesture Interface</span>
+      <div class="nav-links">
+        <a href="#motivation">Motivation</a>
+        <a href="#approach">Approach</a>
+        <a href="#dataset">Dataset</a>
+        <a href="#implementation">Implementation</a>
+        <a href="#results">Results</a>
+        <a href="#problems">Lessons</a>
+        <a href="#future-work">Future</a>
+        <a href="#downloads">Code</a>
+      </div>
+    </div>
   </nav>
 
-  <section id="motivation">
-    <h2>Motivation</h2>
-    <p>
-      <!-- Paste your motivation text here -->
-    </p>
-  </section>
+  <main class="page">
 
-  <section id="approach">
-    <h2>Approach Overview</h2>
-    <p>
-      <!-- Describe camera → YOLOv12n → gesture → computer action -->
-    </p>
-    <img src="images/pipeline.png" alt="System pipeline diagram">
-  </section>
+    <!-- Quick stats strip -->
+    <section class="stats">
+      <div class="stat-card">
+        <span class="stat-label">Images (augmented)</span>
+        <span class="stat-value">1,071</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Gesture Classes</span>
+        <span class="stat-value">6</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Train Time</span>
+        <span class="stat-value">~30 min</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Hardware</span>
+        <span class="stat-value">NVIDIA T4 + CPU</span>
+      </div>
+    </section>
 
-  <section id="dataset">
-    <h2>Dataset</h2>
-    <p>
-      <!-- Describe 445 original images, augmentation to 1071, 6 gestures, etc. -->
-    </p>
-    <img src="images/dataset-collage.png" alt="Sample labeled training images">
-  </section>
+    <!-- Motivation -->
+    <section id="motivation" class="section card">
+      <h2>Motivation</h2>
+      <p>
+        Computers traditionally rely on precise input devices such as keyboards and mice.
+        While effective, these interfaces are not ideal or accessible for everyone. Users with
+        arthritis, carpal tunnel syndrome, or limited hand mobility may find conventional
+        inputs uncomfortable or difficult to use.
+      </p>
+      <p>
+        Newer platforms such as VR/AR systems and smart TVs also lack intuitive ways of
+        interacting without specialized controllers. A gesture-based system provides a natural,
+        hands-free, hardware-free method of interacting with computers.
+      </p>
+      <p>
+        Our goal is to design a flexible, real-time gesture recognition system using only a
+        standard webcam. This project allowed us to explore dataset creation, model
+        fine-tuning, and real-time computer vision while building a practical interface for
+        hands-free computer control.
+      </p>
+    </section>
 
-  <section id="implementation">
-    <h2>Implementation Details</h2>
-    <p>
-      <!-- Explain YOLO training setup and real-time Python app (OpenCV + pynput) -->
-    </p>
-  </section>
+    <!-- Approach -->
+    <section id="approach" class="section card two-column">
+      <div class="column">
+        <h2>Approach Overview</h2>
+        <p>
+          Our system processes live webcam video and recognizes static hand gestures using a
+          fine-tuned YOLOv12n model. Each detected gesture is then mapped to a computer
+          action such as adjusting volume or controlling media playback.
+        </p>
 
-  <section id="results">
-    <h2>Results</h2>
-    <p>
-      <!-- Accuracy / qualitative results -->
-    </p>
-    <img src="images/confusion-matrix.png" alt="Confusion matrix">
-    <video controls src="videos/demo.mp4">
-      Your browser does not support the video tag.
-    </video>
-  </section>
+        <ol class="nice-list">
+          <li>
+            <strong>Webcam Capture</strong><br />
+            Frames are captured from the user's webcam in real time.
+          </li>
 
-  <section id="problems">
-    <h2>Problems Encountered & Lessons Learned</h2>
-    <ul>
-      <li>Data imbalance causing bias toward over-represented gestures.</li>
-      <li>Limited variety in subjects/backgrounds/lighting.</li>
-      <li>Small dataset and confusion between similar gestures.</li>
-      <!-- Add more bullets -->
-    </ul>
-  </section>
+          <li>
+            <strong>Gesture Recognition</strong><br />
+            The YOLOv12n model detects the hand and classifies it as one of:
+            <ul>
+              <li>closed-hand</li>
+              <li>closed-hand-thumb-out</li>
+              <li>open-hand</li>
+              <li>palm-open</li>
+              <li>thumbs-up</li>
+              <li>thumbs-down</li>
+            </ul>
+          </li>
 
-  <section id="future-work">
-    <h2>Future Work</h2>
-    <p>
-      <!-- AR/VR integration, more gestures, dynamic gestures, etc. -->
-    </p>
-  </section>
+          <li>
+            <strong>Action Trigger</strong><br />
+            Using <code>pynput</code>, each gesture maps to a desktop action:
+            <ul>
+              <li>thumbs-up → volume up</li>
+              <li>thumbs-down → volume down</li>
+              <li>palm-open → play / pause</li>
+              <li>open-hand → skip backward</li>
+              <li>closed-hand → move mouse</li>
+              <li>closed-hand-thumb-out → mouse click</li>
+            </ul>
+          </li>
+        </ol>
 
-  <section id="downloads">
-    <h2>Code & Downloads</h2>
-    <ul>
-      <li><a href="https://github.com/your-username/hand-gesture-interface">GitHub Repository</a></li>
-      <li><a href="files/proposal.pdf">Project Proposal</a></li>
-      <li><a href="files/midterm-report.pdf">Mid-term Report</a></li>
-      <li><a href="files/final-slides.pdf">Final Presentation Slides</a></li>
-      <!-- Add demo video / dataset link if you want -->
-    </ul>
-  </section>
+        <p>
+          YOLOv12n was selected because of its speed, lightweight architecture, and strong
+          performance when fine-tuned on small custom datasets.
+        </p>
+      </div>
 
-  <footer>
-    <p>CS 766 – Spring 2025</p>
+      <div class="column column-media">
+        <div class="image-card">
+          <img src="images/yolov12.webp" alt="YOLOv12 architecture visualization" />
+          <p class="image-caption">YOLOv12n fine-tuned for six custom hand gestures.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dataset -->
+    <section id="dataset" class="section card">
+      <h2>Dataset</h2>
+      <p>
+        Since no existing dataset matched our specific gesture definitions, we created our own
+        dataset from scratch. Images were collected from all team members under varying
+        lighting, backgrounds, and hand orientations.
+      </p>
+
+      <div class="pill-row">
+        <span class="pill">445 original images</span>
+        <span class="pill">1,071 images after augmentation</span>
+        <span class="pill">6 gesture classes</span>
+      </div>
+
+      <p>Augmentation included:</p>
+      <ul class="nice-list">
+        <li>random rotation and flipping</li>
+        <li>brightness, exposure, and hue changes</li>
+        <li>cropping and scaling</li>
+        <li>background variation</li>
+      </ul>
+
+      <p>
+        These augmentations increased dataset diversity and improved robustness to lighting,
+        perspective, and user-specific gesture differences.
+      </p>
+
+      <div class="media-row">
+        <div class="image-card">
+          <img src="images/dataset.gif" alt="Animated dataset preview" />
+          <p class="image-caption">Animated preview of our custom gesture dataset.</p>
+        </div>
+        <div class="image-card">
+          <img src="images/labeling.png" alt="Labeled training examples" />
+          <p class="image-caption">Manual labeling of each gesture using bounding boxes.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Implementation -->
+    <section id="implementation" class="section card two-column">
+      <div class="column">
+        <h2>Implementation Details</h2>
+        <p>
+          The project consists of three main components: model training, live inference, and
+          gesture-to-action mapping.
+        </p>
+
+        <p>
+          <strong>Model Training</strong><br />
+          We fine-tuned YOLOv12n on our custom dataset. Training was completed on an
+          NVIDIA T4 GPU in under 30 minutes due to the model’s efficient architecture.
+        </p>
+
+        <p>
+          <strong>Real-Time Inference</strong><br />
+          Using OpenCV, each webcam frame is forwarded through the YOLO model. The
+          detected gesture and bounding box are rendered in real time on the screen so users
+          can see exactly what the model is predicting.
+        </p>
+
+        <p>
+          <strong>Gesture → Action Mapping</strong><br />
+          Using <code>pynput</code>, gestures trigger actions such as media control, volume changes,
+          and mouse operations. Confidence thresholds and prediction smoothing help
+          eliminate flicker during continuous use.
+        </p>
+      </div>
+
+      <div class="column column-media">
+        <div class="image-card">
+          <img src="images/yolov12.webp" alt="YOLOv12 illustration" />
+          <p class="image-caption">YOLOv12 inference powering real-time interaction.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="section card two-column">
+      <div class="column">
+        <h2>Results</h2>
+        <p>
+          The fine-tuned YOLO model performed well across all gesture classes. It operated in
+          real time with low latency, even on CPU-only systems. Some confusion occurred
+          between visually similar gestures (e.g., open-hand and palm-open), but overall
+          accuracy was strong for our intended use case.
+        </p>
+
+        <p>
+          In real-world testing, the system was able to control media playback, volume, and
+          mouse actions reliably while remaining responsive and stable.
+        </p>
+
+        <p>Below is a real-time demonstration of gesture recognition:</p>
+        <div class="video-frame">
+          <video controls src="videos/demo.mp4"></video>
+        </div>
+      </div>
+
+      <div class="column column-media">
+        <div class="image-card">
+          <img src="images/confusionmatrix.png" alt="Confusion matrix showing model performance" />
+          <p class="image-caption">
+            Confusion matrix for the six gesture classes. Most errors occur between similar
+            open-hand and palm-open gestures.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problems & Lessons -->
+    <section id="problems" class="section card">
+      <h2>Problems Encountered & Lessons Learned</h2>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <h3>Data Imbalance</h3>
+          <p>
+            Early versions of the dataset had uneven gesture representation, causing biased
+            predictions toward over-represented classes. Additional data collection and targeted
+            augmentation helped resolve this.
+          </p>
+        </div>
+        <div class="timeline-item">
+          <h3>Lack of Variety</h3>
+          <p>
+            Limited backgrounds, lighting, and subjects reduced model robustness. Expanding
+            the dataset with more locations and users significantly improved performance.
+          </p>
+        </div>
+        <div class="timeline-item">
+          <h3>Gesture Similarity</h3>
+          <p>
+            Certain gestures, especially open-hand vs. palm-open, required substantially more
+            training samples due to their similarity. We learned that some classes inherently
+            need more data than others.
+          </p>
+        </div>
+        <div class="timeline-item">
+          <h3>Testing Methodology</h3>
+          <p>
+            Initially we tested on a single split, which gave misleading results. We improved
+            evaluation consistency using a more systematic test set and by examining
+            confusion patterns, not just overall accuracy.
+          </p>
+        </div>
+      </div>
+
+      <p>
+        Overall, the project highlighted the importance of dataset quality, variance, and the
+        power of transfer learning for small, domain-specific tasks.
+      </p>
+    </section>
+
+    <!-- Future Work -->
+    <section id="future-work" class="section card">
+      <h2>Future Work</h2>
+
+      <div class="pill-row">
+        <span class="pill">Dynamic gesture sequences</span>
+        <span class="pill">AR/VR integration</span>
+        <span class="pill">Multi-hand support</span>
+        <span class="pill">Hybrid YOLO + landmarks</span>
+      </div>
+
+      <ul class="nice-list">
+        <li>Support for dynamic or sequential gestures instead of only static poses.</li>
+        <li>Integration with AR/VR headsets for natural, controller-free interaction.</li>
+        <li>Recognition of multi-hand and multi-user gestures.</li>
+        <li>Hybrid architectures combining YOLO detection with hand landmarks (e.g., MediaPipe).</li>
+        <li>Packaging as a standalone accessibility or smart TV control application.</li>
+        <li>Scaling to a much larger, multi-user dataset for improved generalization.</li>
+      </ul>
+
+      <p>
+        With more data and advanced modeling, this system could become a robust,
+        low-cost, hands-free interface for accessibility, entertainment, and immersive
+        computing.
+      </p>
+    </section>
+
+    <!-- Downloads -->
+    <section id="downloads" class="section card">
+      <h2>Code & Downloads</h2>
+      <p>
+        All project materials are available below:
+      </p>
+      <ul class="nice-list">
+        <li>
+          <a href="https://github.com/Matthew-Kasper/Hand-Gesture-Interface" target="_blank">
+            GitHub Repository
+          </a>
+        </li>
+        <li><a href="files/proposal.pdf" target="_blank">Project Proposal</a></li>
+        <li><a href="files/midterm-report.pdf" target="_blank">Mid-term Report</a></li>
+        <li><a href="files/final-slides.pdf" target="_blank">Final Presentation Slides</a></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>CS 566 · Computer Vision · Semester Project</p>
   </footer>
+
 </body>
 </html>
