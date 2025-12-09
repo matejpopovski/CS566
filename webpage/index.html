@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hand Gesture Interface</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Hand Gesture Interface</h1>
+    <p>Aniket Patel · Matthew Kasper · Matej Popovski</p>
+  </header>
+
+  <nav>
+    <a href="#motivation">Motivation</a>
+    <a href="#approach">Approach</a>
+    <a href="#dataset">Dataset</a>
+    <a href="#implementation">Implementation</a>
+    <a href="#results">Results</a>
+    <a href="#problems">Problems & Lessons</a>
+    <a href="#future-work">Future Work</a>
+    <a href="#downloads">Code & Downloads</a>
+  </nav>
+
+  <section id="motivation">
+    <h2>Motivation</h2>
+    <p>
+      <!-- Paste your motivation text here -->
+    </p>
+  </section>
+
+  <section id="approach">
+    <h2>Approach Overview</h2>
+    <p>
+      <!-- Describe camera → YOLOv12n → gesture → computer action -->
+    </p>
+    <img src="images/pipeline.png" alt="System pipeline diagram">
+  </section>
+
+  <section id="dataset">
+    <h2>Dataset</h2>
+    <p>
+      <!-- Describe 445 original images, augmentation to 1071, 6 gestures, etc. -->
+    </p>
+    <img src="images/dataset-collage.png" alt="Sample labeled training images">
+  </section>
+
+  <section id="implementation">
+    <h2>Implementation Details</h2>
+    <p>
+      <!-- Explain YOLO training setup and real-time Python app (OpenCV + pynput) -->
+    </p>
+  </section>
+
+  <section id="results">
+    <h2>Results</h2>
+    <p>
+      <!-- Accuracy / qualitative results -->
+    </p>
+    <img src="images/confusion-matrix.png" alt="Confusion matrix">
+    <video controls src="videos/demo.mp4">
+      Your browser does not support the video tag.
+    </video>
+  </section>
+
+  <section id="problems">
+    <h2>Problems Encountered & Lessons Learned</h2>
+    <ul>
+      <li>Data imbalance causing bias toward over-represented gestures.</li>
+      <li>Limited variety in subjects/backgrounds/lighting.</li>
+      <li>Small dataset and confusion between similar gestures.</li>
+      <!-- Add more bullets -->
+    </ul>
+  </section>
+
+  <section id="future-work">
+    <h2>Future Work</h2>
+    <p>
+      <!-- AR/VR integration, more gestures, dynamic gestures, etc. -->
+    </p>
+  </section>
+
+  <section id="downloads">
+    <h2>Code & Downloads</h2>
+    <ul>
+      <li><a href="https://github.com/your-username/hand-gesture-interface">GitHub Repository</a></li>
+      <li><a href="files/proposal.pdf">Project Proposal</a></li>
+      <li><a href="files/midterm-report.pdf">Mid-term Report</a></li>
+      <li><a href="files/final-slides.pdf">Final Presentation Slides</a></li>
+      <!-- Add demo video / dataset link if you want -->
+    </ul>
+  </section>
+
+  <footer>
+    <p>CS 766 – Spring 2025</p>
+  </footer>
+</body>
+</html>
